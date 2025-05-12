@@ -1,0 +1,18 @@
+[package]
+name = "project"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+futures-util = "0.3.31"
+itertools = "0.14.0"
+json = "0.12.4"
+open = "5.3.2"
+serialport = "4.0"
+simple-websockets = "0.1.6"
+threadpool = "1.8.1"
+tokio = { version = "1.45.0", features = ["sync"] }
+tungstenite = "0.21"
+
+[features]
+verbose = []
