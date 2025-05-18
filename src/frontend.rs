@@ -12,8 +12,9 @@ use crate::utils::*;
 use crate::vprintln;
 
 
-const ADDRESS: &str = "localhost:5000";
-const SOCKET_PORT: u16 = 5001;
+const ADDRESS: &str = "0.0.0.0";
+const WEB_PORT: u16 = 8888;
+const SOCKET_PORT: u16 = 8889;
 const MAX_THREADS: usize = 4;
 
 pub fn websocket_listen(receiver: Receiver<String>) {
@@ -57,6 +58,7 @@ fn handle_websocket_connection(event_hub: EventHub, clients: Arc<Mutex<HashMap<u
                 vprintln!("#{client_id} disconnected");
 
                 let mut responders = clients.lock().unwrap();
+                responders.get(&client_id).unwrap().close();
                 responders.remove(&client_id);
             },
             _ => {
@@ -68,11 +70,11 @@ fn handle_websocket_connection(event_hub: EventHub, clients: Arc<Mutex<HashMap<u
 
 pub fn http_listen() {
     // starting listening
-    let listener = TcpListener::bind(ADDRESS).unwrap();
+    let listener = TcpListener::bind(format!("{ADDRESS}:{WEB_PORT}")).unwrap();
 
     // open app in browser
-    if open::that(format!("http://{ADDRESS}")).is_ok() {
-        println!("Server running at {ADDRESS}");
+    if open::that(format!("http://{ADDRESS}:{WEB_PORT}")).is_ok() {
+        println!("Server running at {ADDRESS}:{WEB_PORT}");
     } else {
         println!("Failed to open application in browser.");
     }
@@ -110,12 +112,12 @@ fn handle_http_connection(mut stream: TcpStream) {
 
     match end_point {
         "/socket_port" => {
-            write_response(&mut stream, 200, None, Some(SOCKET_PORT.to_string()))
+            write_response(&mut stream, 200, None, Some(SOCKET_PORT.to_string()));
         },
         _ => {
             // get file
             let end_point = if end_point == "/" {
-                "index.html"
+                "/index.html"
             } else {
                 end_point
             };
@@ -124,7 +126,8 @@ fn handle_http_connection(mut stream: TcpStream) {
             if file.is_ok() {
                 write_response(&mut stream, 200, None, Some(file.unwrap()));
             } else {
-                vprintln!("{method} {end_point} failed!");
+                vprintln!("{method} {end_point} failed");
+                vprintln!("{}", file.err().unwrap());
                 write_response(&mut stream, 404, None, None);
             }
         }

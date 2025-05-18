@@ -29,5 +29,7 @@ pub fn write_response(stream: &mut TcpStream, status: u16, message: Option<&str>
 const FRONTEND_DIR: &str = "frontend";
 
 pub fn get_frontend(file: &str) -> Result<String, Error> {
-    return fs::read_to_string(format!("{FRONTEND_DIR}/{file}"));
+    let file_dir = format!("{FRONTEND_DIR}{file}");
+    vprintln!("Getting frontend file: {file_dir}");
+    return fs::read_to_string(file_dir);
 }
