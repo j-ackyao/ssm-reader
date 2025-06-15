@@ -1,6 +1,11 @@
 # smm reader
-rust backend to connect to ecu
+subaru ssm protocol ecu reader reimplemented in a modern stack
 
-exposed websocket for web app frontend
+- rust backend to connect to ecu
+- exposed websocket for web app frontend
 
-intend to implement a data analysis page by collecting data as csv and visualizing them
+
+### todos
+- [x] communicate with ecu through ssm2 protocol and reading response packets
+- [ ] improve data throughput with optimized read requests
+- [ ] collecting data as csv and visualizing them in data analysis page
