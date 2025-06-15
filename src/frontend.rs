@@ -1,16 +1,15 @@
+use crate::utils::*;
+use crate::vprintln;
+use itertools::Itertools;
+use simple_websockets::{Event, EventHub, Message, Responder};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::thread;
 use std::{
-    io::{prelude::*, BufReader},
+    io::{BufReader, prelude::*},
     net::{TcpListener, TcpStream},
     sync::mpsc::Receiver,
 };
-use std::sync::{Arc, Mutex};
-use simple_websockets::{Event, EventHub, Responder, Message};
-use std::collections::HashMap;
-use itertools::Itertools;
-use std::thread;
-use crate::utils::*;
-use crate::vprintln;
-
 
 const ADDRESS: &str = "0.0.0.0";
 const WEB_PORT: u16 = 8888;
@@ -18,8 +17,8 @@ const SOCKET_PORT: u16 = 8889;
 const MAX_THREADS: usize = 4;
 
 pub fn websocket_listen(receiver: Receiver<String>) {
-    let event_hub = simple_websockets::launch(SOCKET_PORT)
-        .expect("failed to listen on port {SOCKET_PORT}");
+    let event_hub =
+        simple_websockets::launch(SOCKET_PORT).expect("Failed to listen on port {SOCKET_PORT}");
     let clients = Arc::new(Mutex::new(HashMap::<u64, Responder>::new()));
 
     let sender_clone = Arc::clone(&clients);
@@ -36,13 +35,12 @@ fn handle_data_responder(receiver: Receiver<String>, clients: Arc<Mutex<HashMap<
                 let responders = clients.lock().unwrap();
                 for (_, responder) in responders.iter() {
                     responder.send(Message::Text(data.clone()));
-                    vprintln!("sent to client: {data}");
+                    vprintln!("Sent to client: {data}");
                 }
             }
             Err(_) => break,
         }
     }
-
 }
 
 fn handle_websocket_connection(event_hub: EventHub, clients: Arc<Mutex<HashMap<u64, Responder>>>) {
@@ -53,14 +51,14 @@ fn handle_websocket_connection(event_hub: EventHub, clients: Arc<Mutex<HashMap<u
 
                 let mut responders = clients.lock().unwrap();
                 responders.insert(client_id, responder);
-            },
+            }
             Event::Disconnect(client_id) => {
                 vprintln!("#{client_id} disconnected");
 
                 let mut responders = clients.lock().unwrap();
                 responders.get(&client_id).unwrap().close();
                 responders.remove(&client_id);
-            },
+            }
             _ => {
                 // no-op
             }
@@ -113,7 +111,7 @@ fn handle_http_connection(mut stream: TcpStream) {
     match end_point {
         "/socket_port" => {
             write_response(&mut stream, 200, None, Some(SOCKET_PORT.to_string()));
-        },
+        }
         _ => {
             // get file
             let end_point = if end_point == "/" {
@@ -132,6 +130,4 @@ fn handle_http_connection(mut stream: TcpStream) {
             }
         }
     };
-
 }
-
